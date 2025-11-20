@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAEP Protocol Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin: 5px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .code-snippet {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: auto;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        footer a {
+            color: white;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔐 OAEP Protocol Demo</h1>
+        <p class="subtitle">Open Agent Exchange Protocol - Sichere Identität für KI-Agenten</p>
+    </header>
+
+    <div class="container">
+        <!-- DID Generation Demo -->
+        <div class="demo-section">
+            <h2>🆔 DID (Decentralized Identifier) Generierung</h2>
+            <p style="margin-bottom: 20px;">Erstellen Sie dezentrale Identitäten für Agenten ohne zentrale Autorität.
+            </p>
+
+            <div class="button-group">
+                <button onclick="generateDID('key')">DID:Key Generieren</button>
+                <button onclick="generateDID('web')">DID:Web Generieren</button>
+            </div>
+
+            <div id="did-output" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Verifiable Credentials Demo -->
+        <div class="demo-section">
+            <h2>📜 Verifiable Credentials (AgentProfile)</h2>
+            <p style="margin-bottom: 20px;">Erstellen Sie signierte digitale Zertifikate für Agent-Identitäten.</p>
+
+            <div class="button-group">
+                <button onclick="createAgentProfile('personal')">Personal Agent</button>
+                <button onclick="createAgentProfile('business')">Business Agent</button>
+                <button onclick="createAgentProfile('service')">Service Agent</button>
+            </div>
+
+            <div id="vc-output" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Handshake Demo -->
+        <div class="demo-section">
+            <h2>🤝 OAEP Handshake Protocol</h2>
+            <p style="margin-bottom: 20px;">Demonstriert den vollständigen Verbindungsaufbau zwischen zwei Agenten.</p>
+
+            <div class="button-group">
+                <button onclick="runHandshake()">Handshake Ausführen</button>
+            </div>
+
+            <div class="loader" id="handshake-loader"></div>
+            <div id="handshake-output" class="output" style="display: none;"></div>
+        </div>
+
+        <!-- Information Cards -->
+        <div class="grid">
+            <div class="card">
+                <h3>🔑 Kryptographische Sicherheit</h3>
+                <p>Verwendet Ed25519-Signaturen für maximale Sicherheit bei minimaler Größe. Alle privaten Schlüssel
+                    bleiben unter Ihrer Kontrolle.</p>
+            </div>
+
+            <div class="card">
+                <h3>🌐 Dezentral & Offen</h3>
+                <p>Keine zentrale Autorität erforderlich. Basiert auf W3C-Standards (DID, VC) für maximale
+                    Interoperabilität.</p>
+            </div>
+
+            <div class="card">
+                <h3>🚀 AI-zu-AI Kommunikation</h3>
+                <p>Ermöglicht sichere, authentifizierte Kommunikation zwischen autonomen KI-Agenten.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>OAEP - Open Agent Exchange Protocol v0.1</p>
+        <p><a href="https://github.com/oap-foundation/oap-framework" target="_blank">GitHub</a> |
+            <a href="docs/IMPLEMENTATION.md">Dokumentation</a> |
+            <a href="docs/API.md">API Referenz</a>
+        </p>
+    </footer>
+
+    <script>
+        function generateDID(type) {
+            const output = document.getElementById('did-output');
+            output.style.display = 'block';
+            output.innerHTML = '<p style="color: #667eea;">Generiere DID...</p>';
+
+            fetch('api.php?action=generate_did&type=' + type)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        output.innerHTML = `
+                            <div class="status success">✅ DID erfolgreich generiert</div>
+                            <br><br>
+                            <strong>DID:</strong><br>
+                            <code>${data.did}</code>
+                            <br><br>
+                            <strong>DID Document:</strong><br>
+                            <pre>${JSON.stringify(data.document, null, 2)}</pre>
+                        `;
+                    } else {
+                        output.innerHTML = `<div class="status warning">❌ Fehler: ${data.error}</div>`;
+                    }
+                })
+                .catch(error => {
+                    output.innerHTML = `<div class="status warning">❌ Netzwerkfehler: ${error}</div>`;
+                });
+        }
+
+        function createAgentProfile(agentType) {
+            const output = document.getElementById('vc-output');
+            output.style.display = 'block';
+            output.innerHTML = '<p style="color: #667eea;">Erstelle AgentProfile...</p>';
+
+            fetch('api.php?action=create_profile&agent_type=' + agentType)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        output.innerHTML = `
+                            <div class="status success">✅ AgentProfile erstellt und signiert</div>
+                            <br><br>
+                            <strong>Agent Name:</strong> ${data.profile.credentialSubject.agent.name}<br>
+                            <strong>Agent Type:</strong> ${data.profile.credentialSubject.agent.type}<br>
+                            <strong>DID:</strong> ${data.profile.credentialSubject.id}<br>
+                            <strong>Issuer:</strong> ${data.profile.issuer}<br>
+                            <br>
+                            <strong>Verifiable Credential:</strong><br>
+                            <pre>${JSON.stringify(data.profile, null, 2)}</pre>
+                        `;
+                    } else {
+                        output.innerHTML = `<div class="status warning">❌ Fehler: ${data.error}</div>`;
+                    }
+                })
+                .catch(error => {
+                    output.innerHTML = `<div class="status warning">❌ Netzwerkfehler: ${error}</div>`;
+                });
+        }
+
+        function runHandshake() {
+            const output = document.getElementById('handshake-output');
+            const loader = document.getElementById('handshake-loader');
+
+            output.style.display = 'none';
+            loader.style.display = 'block';
+
+            fetch('api.php?action=handshake_demo')
+                .then(response => response.json())
+                .then(data => {
+                    loader.style.display = 'none';
+                    output.style.display = 'block';
+
+                    if (data.success) {
+                        output.innerHTML = `
+                            <div class="status success">✅ Handshake erfolgreich abgeschlossen</div>
+                            <br><br>
+                            ${data.steps.map((step, index) => `
+                                <div class="status info">Step ${index + 1}</div>
+                                <strong>${step.title}</strong><br>
+                                ${step.details}<br><br>
+                            `).join('')}
+                            <div class="status success">🔐 Verbindung etabliert!</div>
+                            <br><br>
+                            <strong>Session ID:</strong> ${data.sessionId}<br>
+                            <strong>Agent A:</strong> ${data.agentA}<br>
+                            <strong>Agent B:</strong> ${data.agentB}<br>
+                        `;
+                    } else {
+                        output.innerHTML = `<div class="status warning">❌ Fehler: ${data.error}</div>`;
+                    }
+                })
+                .catch(error => {
+                    loader.style.display = 'none';
+                    output.style.display = 'block';
+                    output.innerHTML = `<div class="status warning">❌ Netzwerkfehler: ${error}</div>`;
+                });
+        }
+
+        // Auto-run handshake demo on page load
+        //window.addEventListener('load', () => setTimeout(runHandshake, 1000));
+    </script>
+</body>
+
+</html>
