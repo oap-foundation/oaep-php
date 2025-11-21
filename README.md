@@ -33,7 +33,6 @@ OAEP solves the fundamental problem of establishing **secure, trustworthy, and s
 
 ```bash
 # Clone the repository
-cd /Applications/MAMP/htdocs
 git clone https://github.com/oap-foundation/oaep-php.git oaep
 cd oaep
 
